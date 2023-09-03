@@ -2,6 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse, urljoin
 from colorama import init, Fore
+import threading
 
 # Initialize colorama for colored text
 init(autoreset=True)
@@ -70,9 +71,16 @@ try:
     with open(file_name, 'r') as file:
         starting_urls = [line.strip() for line in file]
 
-    # Start the crawl from the provided starting URLs
+    # Create a thread for each starting URL
+    threads = []
     for starting_url in starting_urls:
-        crawl_url(starting_url, visited_urls, max_depth, post_forms_file)
+        thread = threading.Thread(target=crawl_url, args=(starting_url, visited_urls, max_depth, post_forms_file))
+        threads.append(thread)
+        thread.start()
+
+    # Wait for all threads to finish
+    for thread in threads:
+        thread.join()
 
 except FileNotFoundError:
     print(f"File '{file_name}' not found.")
